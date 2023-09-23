@@ -31,26 +31,29 @@ def main():
 # requests.get request
 def http():
     try:
-        url = "http://127.0.0.1:8080"
+        host = '127.0.0.1'
+        port = 8080
+        url = f"http://{host}:{port}"
         headers = {
             "Accept": "application/json"
         }
         data = {
             'content': "Hello"
         }
+        try:
+            while True:
+                response = requests.get(
+                url=url, headers=headers, json=data
+                )
+            
+                print(json.loads(response.text)['message'])
+        except KeyboardInterrupt:
+            print("Request stopped")
 
-        response = requests.get(
-           url=url, headers=headers, json=data
-        )
-        print(json.loads(response.text)['message'])
-
-    except Exception as e:
-        traceback.print_exc()
-        print("Value Error!")
+    except Exception:
+        print("Remote server stopped")
 
 
 if __name__ == '__main__':
     # main()
-    while True:
-        http()
-        time.sleep(4)
+    http()

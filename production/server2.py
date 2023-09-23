@@ -7,13 +7,10 @@ import time
 class CustomHTTPServer(HTTPServer):
     def serve_forever(self):
         print("Custom server is running...")
-        try:
-            while True:
-                print("Waiting request...")
-                self.handle_request()  # process request from client
-                print("Processed request!")
-        except KeyboardInterrupt:
-            print("Custom server stopped.")
+        while True:
+            print("Waiting request...")
+            self.handle_request()  # process request from client
+            print("Processed request!")
 
 
 class CustomResponseHandler(BaseHTTPRequestHandler):
@@ -61,4 +58,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except:
+        print("Server stopped.")

@@ -8,7 +8,7 @@ class ResponseHandler(BaseHTTPRequestHandler):
     
     # set log message
     def log_message(self, format, *args):
-        pass
+        print(f"Requested from {self.headers['Host']}.")
 
 
     # parse requests object to json
@@ -40,20 +40,21 @@ class ResponseHandler(BaseHTTPRequestHandler):
             
 
             # send request to server
-            response_from_server = requests.get(url, json=self.__parse())
             response_content = ""
             error_response = {
                 'code': 500,
                 'status': 'failed'
             }
 
-            # request from server to router successfully
-            if response_from_server.status_code == 200:
+            try:
+                response_from_server = requests.get(url, json=self.__parse())
+                # request from server to router successfully
                 response_content = response_from_server.text
+            except:
+                response_content = json.dumps(error_response)
+                print('Response error!')
                 
 
-            else:
-                response_content = json.dumps(error_response)
         # server can't receive request
         else:
             response_content = json.dumps(error_response)
@@ -68,21 +69,20 @@ class ResponseHandler(BaseHTTPRequestHandler):
 
 
 def main():
+    try:
+        # get requests from client
+        route_address = ("127.0.0.1", 8080)
+        # httpd = HTTPServer(route_address, ResponseHandler)
 
-    # get requests from client
-    route_address = ("127.0.0.1", 8080)
-    # httpd = HTTPServer(route_address, ResponseHandler)
+        print(f"Start router on {route_address[0]}:{route_address[1]}")
+        httpd = HTTPServer(route_address, ResponseHandler)
 
-    print(f"Start router on {route_address[0]}:{route_address[1]}")
-    httpd = HTTPServer(route_address, ResponseHandler)
-
-
-    httpd.serve_forever()
-
+        httpd.serve_forever()
+    except:
+        print("Router stopped")
 
 
 if __name__ == "__main__":
-
     route_table = {
         'addr1': {
             'ip': "127.0.0.1",
@@ -95,4 +95,7 @@ if __name__ == "__main__":
             'status': 'Y'
         }
     }
-    main()
+    try:
+        main()
+    except:
+        print("Router stopped")
