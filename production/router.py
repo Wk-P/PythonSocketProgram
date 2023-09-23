@@ -2,19 +2,6 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import requests
 import json
 
-route_table = {
-    'addr1': {
-        'ip': "127.0.0.1",
-        'port': 8001,
-        'status': 'N'
-    },
-    'addr2': {
-        'ip': "127.0.0.1",
-        'port': 8002,
-        'status': 'Y'
-    }
-}
-
 
 # This class is to make a HTTP response
 class ResponseHandler(BaseHTTPRequestHandler):
@@ -95,4 +82,17 @@ def main():
 
 
 if __name__ == "__main__":
+
+    route_table = {
+        'addr1': {
+            'ip': "127.0.0.1",
+            'port': 8001,
+            'status': 'N'
+        },
+        'addr2': {
+            'ip': "127.0.0.1",
+            'port': 8002,
+            'status': 'Y'
+        }
+    }
     main()
