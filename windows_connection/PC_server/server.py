@@ -1,8 +1,13 @@
 import http.server
 import json
+from typing import Any
 
 # 自定义请求处理器类
 class CustomRequestHandler(http.server.BaseHTTPRequestHandler):
+    
+    def log_message(self, format: str, *args: Any) -> None:
+        pass
+
     def do_POST(self):
         # 从客户端接收数据
         content_length = int(self.headers['Content-Length'])
