@@ -25,7 +25,7 @@ async def handle_request(request):
     global current_weight
 
     while True:
-        # 寻找可用服务器
+        # find server
         server_entry = None
         for _ in range(len(route_table)):
             server_index = (server_index + 1) % len(route_table)
@@ -33,12 +33,12 @@ async def handle_request(request):
             if server_entry['status'] == 'Y':
                 break
 
-        # 计算当前权重
+        # calculate weight
         current_weight -= 1
         if current_weight < 0:
             current_weight = max(entry['weight'] for entry in route_table)
 
-        # 检查是否达到权重要求
+        # check weight status
         if server_entry['weight'] >= current_weight:
             server_url = server_entry['address']
             break
