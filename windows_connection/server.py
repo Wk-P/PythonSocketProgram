@@ -21,7 +21,7 @@ class CustomRequestHandler(http.server.BaseHTTPRequestHandler):
         self.wfile.write(b'OK')
 
 # 创建 HTTP 服务器并启动
-server_address = ('127.0.0.1', 8080)
+server_address = ('192.168.1.5', 8080)
 httpd = http.server.HTTPServer(server_address, CustomRequestHandler)
 print(f'Starting server on {server_address[0]}:{server_address[1]}')
 httpd.serve_forever()
