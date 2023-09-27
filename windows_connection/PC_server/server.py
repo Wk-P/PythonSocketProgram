@@ -12,7 +12,7 @@ class CustomRequestHandler(http.server.BaseHTTPRequestHandler):
         data = json.loads(post_data)
         
         # 在这里处理数据，例如打印它
-        print(data)
+        print(data['content'])
         
         # 发送响应
         self.send_response(200)
