@@ -18,8 +18,8 @@ def send_request(count, response_counts, lock):
             print("Request was successful. Server response:")
             json_data = json.loads(response.text)
             print(json_data, end='\n-----\n')
-            port = json_data['port']
-            
+            port = json_data['server']
+
             # lock value response_counts
             with lock:
                 if port not in response_counts:
@@ -45,7 +45,7 @@ if __name__ == "__main__":
     pool = multiprocessing.Pool(processes=num_processes)
     
     # request list
-    num_requests = 50
+    num_requests = 10000
     request_counts = [random.randint(3, 19) for _ in range(num_requests)]
     
     # response list
@@ -62,5 +62,5 @@ if __name__ == "__main__":
     pool.join()
     
     print("Response counts:")
-    for port, count in response_counts.items():
-        print(f"Server port {port}: {count} responses")
+    for server, data in response_counts.items():
+        print(f"Server {server} responses => {data}")
