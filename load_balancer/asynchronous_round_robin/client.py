@@ -18,7 +18,7 @@ def send_request(count, response_counts, lock):
             print(f"Request was successful. Server response: {json_data}")
             port = json_data['port']
             
-            # 在访问共享的dict前加锁
+            # lock value response_counts
             with lock:
                 if port not in response_counts:
                     response_counts[port] = 1
@@ -31,31 +31,31 @@ def send_request(count, response_counts, lock):
         print(f"Request failed with error: {str(e)}")
 
 if __name__ == "__main__":
-    # 使用Manager创建共享的dict
+    # manager values for response_counts
     manager = multiprocessing.Manager()
     response_counts = manager.dict()
     
-    # 创建锁
+    # lock of response_counts
     lock = manager.Lock()
 
-    # 创建多个进程池，并运行send_request函数
-    num_processes = 4  # 您可以根据需要更改进程数量
+    # processes pool
+    num_processes = 4  # sum of processes
     pool = multiprocessing.Pool(processes=num_processes)
     
-    # 创建要发送的请求数量列表
+    # request list
     num_requests = 50
     request_counts = [random.randint(3, 19) for _ in range(num_requests)]
     
-    # 使用进程池并发发送请求
+    # response list
     results = []
     
     for count in request_counts:
         if len(results) >= num_processes:
-            results.pop(0).get()  # 等待一个进程完成
+            results.pop(0).get()  # wait first response finished when request process list is full
         result = pool.apply_async(send_request, (count, response_counts, lock))
         results.append(result)
     
-    # 等待所有进程完成
+    # all process finished
     pool.close()
     pool.join()
     

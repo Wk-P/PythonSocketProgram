@@ -21,7 +21,7 @@ connection_count = {route['address']: 0 for route in route_table}
 async def handle_request(request):
     global connection_count
 
-    # find the server with leatest connections
+    # 找到当前连接数最少的服务器
     min_connections_server = min(connection_count, key=connection_count.get)
     server_url = min_connections_server
 
@@ -39,10 +39,10 @@ async def handle_request(request):
                 headers=response.headers
             )
 
-            # add connected number of servers 
+            # 增加被选中服务器的连接数
             connection_count[min_connections_server] += 1
 
-            # reduce connections for requests choosing another server later
+            # 减少连接数，以便后续请求能够选择其他服务器
             request.app.loop.call_later(
                 1, decrease_connection_count, min_connections_server
             )
