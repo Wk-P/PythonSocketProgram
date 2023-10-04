@@ -14,9 +14,8 @@ def send_request(count, response_counts, lock):
         }
         response = requests.post(server_url, json=data)
         if response.status_code == 200:
-            print("Request was successful. Server response:")
             json_data = json.loads(response.text)
-            print(json_data, end='\n-----\n')
+            print(f"Request was successful. Server response: {json_data}")
             port = json_data['port']
             
             # 在访问共享的dict前加锁
@@ -44,7 +43,7 @@ if __name__ == "__main__":
     pool = multiprocessing.Pool(processes=num_processes)
     
     # 创建要发送的请求数量列表
-    num_requests = 50
+    num_requests = 108
     request_counts = [random.randint(3, 19) for _ in range(num_requests)]
     
     # 使用进程池并发发送请求

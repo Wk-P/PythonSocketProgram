@@ -14,9 +14,8 @@ def send_request(count, response_counts, lock):
         }
         response = requests.post(server_url, json=data)
         if response.status_code == 200:
-            print("Request was successful. Server response:")
             json_data = json.loads(response.text)
-            print(json_data, end='\n-----\n')
+            print(f"Request was successful. Server response: {json_data}")
             port = json_data['port']
             
             # 在访问共享的dict前加锁
