@@ -16,8 +16,7 @@ async def handle_request(request):
 
     response_data = {
         "num": num,
-        # "result": result,
-        "host": ":127.0.0.1",
+        "host": "127.0.0.1",
         "port": 9021
     }
     return web.json_response(response_data)

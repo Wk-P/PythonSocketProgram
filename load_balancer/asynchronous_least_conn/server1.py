@@ -16,7 +16,7 @@ async def handle_request(request):
     response_data = {
         "num": num,
         "result": len(result),
-        "host": ":127.0.0.1",
+        "host": "127.0.0.1",
         "port": 9011
     }
     return web.json_response(response_data)
@@ -24,4 +24,4 @@ async def handle_request(request):
 app = web.Application()
 app.router.add_post('/', handle_request)
 
-web.run_app(app, host='localhost', port=9011)
+web.run_app(app, host='127.0.0.1', port=8082)

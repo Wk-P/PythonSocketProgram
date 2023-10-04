@@ -6,22 +6,22 @@ from aiohttp import web
 
 route_table = [
     {
-        "address": "http://127.0.0.1:9011",
+        "address": "http://127.0.0.1:8082",
         'status': "Y"
     },
     {
-        "address": "http://127.0.0.1:9012",
+        "address": "http://127.0.0.1:8083",
         'status': "Y"
     }
 ]
 
-# connection counter dictionary
+# create a counter dictionary on routing server
 connection_count = {route['address']: 0 for route in route_table}
 
 async def handle_request(request):
     global connection_count
 
-    # find the sum of connections is min
+    # 找到当前连接数最少的服务器
     min_connections_server = min(connection_count, key=connection_count.get)
     server_url = min_connections_server
 
@@ -39,10 +39,10 @@ async def handle_request(request):
                 headers=response.headers
             )
 
-            # add targeted server sum
+            # 增加被选中服务器的连接数
             connection_count[min_connections_server] += 1
 
-            # release server for reusing
+            # 减少连接数，以便后续请求能够选择其他服务器
             request.app.loop.call_later(
                 1, decrease_connection_count, min_connections_server
             )
