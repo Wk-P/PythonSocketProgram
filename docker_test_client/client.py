@@ -1,26 +1,21 @@
-# round robin
-
-import aiohttp
 import requests
 import multiprocessing
 import random
 import json
 
-server_url = "http://192.168.56.102:8080"
-
-def send_request(count, response_counts, lock):
+def send_request(server_url, prime_sum, response_counts, lock):
     try:
         data = {
-            'num': count
+            'num': prime_sum
         }
         response = requests.post(server_url, json=data)
         if response.status_code == 200:
             print("Request was successful. Server response:")
-            json_data = json.loads(response.text)
+            json_data = response.json()
             print(json_data, end='\n-----\n')
             port = json_data['server']
 
-            # lock value response_counts
+            # update response_counts with lock
             with lock:
                 if port not in response_counts:
                     response_counts[port] = 1
@@ -33,34 +28,38 @@ def send_request(count, response_counts, lock):
         print(f"Request failed with error: {str(e)}")
 
 if __name__ == "__main__":
-    # manager values for response_counts
+
+    server_url = "http://192.168.56.102:8080"
+    
+    # make response_counts dictionary with Manager
     manager = multiprocessing.Manager()
     response_counts = manager.dict()
     
-    # lock of response_counts
+    # create lock
     lock = manager.Lock()
 
-    # processes pool
-    num_processes = 4  # sum of processes
+    # process pool
+    num_processes = 4  # processes number
     pool = multiprocessing.Pool(processes=num_processes)
     
-    # request list
-    num_requests = 10000
-    request_counts = [random.randint(3, 19) for _ in range(num_requests)]
+    # requests
+    num_requests = 3000
+    request_counts = [random.randint(1, 50) for _ in range(num_requests)]
     
-    # response list
+    # response result list
     results = []
     
     for count in request_counts:
         if len(results) >= num_processes:
-            results.pop(0).get()  # wait first response finished when request process list is full
-        result = pool.apply_async(send_request, (count, response_counts, lock))
+            results.pop(0).get()  # wait the first response pf requests when request queue is full (max = 4)
+        result = pool.apply_async(send_request, (server_url, count, response_counts, lock))
         results.append(result)
     
-    # all process finished
+    # wait all prcesses finishing
     pool.close()
     pool.join()
     
+    # print counter
     print("Response counts:")
     for server, data in response_counts.items():
         print(f"Server {server} responses => {data}")
