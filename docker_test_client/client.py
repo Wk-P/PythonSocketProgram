@@ -10,9 +10,9 @@ def send_request(server_url, prime_sum, response_counts, lock):
         }
         response = requests.post(server_url, json=data)
         if response.status_code == 200:
-            print("Request was successful. Server response:")
+            # print("Request was successful. Server response:")
             json_data = response.json()
-            print(json_data, end='\n-----\n')
+            # print(json_data, end='\n-----\n')
             port = json_data['server']
 
             # update response_counts with lock
