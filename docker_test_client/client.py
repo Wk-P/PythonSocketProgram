@@ -38,7 +38,6 @@ def send_request(server_url, prime_sum, response_counts, lock, response_time_lis
                 "counter": json_data['data']['counter'],
                 "mem": json_data['data']['mem'],
                 "cpu": total_usage,
-                "s_cpu": json_data['data']['cpu']
                 })
         else:
             print(f"Request failed with status code: {response.status_code}")
