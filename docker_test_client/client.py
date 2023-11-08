@@ -29,16 +29,16 @@ def send_request(server_url, prime_sum, response_counts, lock, response_time_lis
             total_sys = sum(cpu['times']['sys'] for cpu in json_data['data']['cpus'])
             total_idle = sum(cpu['times']['idle'] for cpu in json_data['data']['cpus'])
             total_irq = sum(cpu['times']['irq'] for cpu in json_data['data']['cpus'])
-            print(total_user)
-            total_time = total_user + total_sys + total_idle + total_irq
-            print(total_user)
-            print(total_time)
-            total_usage = ((total_user + total_sys + total_irq) / total_time)
+
+            total_time = ( total_user + total_sys + total_idle + total_irq ) * 0.2
+            total_usage = ((total_user + total_sys) / total_time)
+
 
             response_data_list.append({
                 "counter": json_data['data']['counter'],
                 "mem": json_data['data']['mem'],
-                "cpu": total_usage
+                "cpu": total_usage,
+                "s_cpu": json_data['data']['cpu']
                 })
         else:
             print(f"Request failed with status code: {response.status_code}")
@@ -65,7 +65,7 @@ if __name__ == "__main__":
     lock = manager.Lock()
 
     # process pool
-    num_processes = 4  # processes number
+    num_processes = 10  # processes number
     pool = multiprocessing.Pool(processes=num_processes)
     
     # requests
