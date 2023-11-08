@@ -69,7 +69,7 @@ if __name__ == "__main__":
     pool = multiprocessing.Pool(processes=num_processes)
     
     # requests
-    num_requests = 50
+    num_requests = 500
     request_counts = [random.randint(1, 10000) for _ in range(num_requests)]
     # response result list
     results = []
