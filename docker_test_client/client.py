@@ -25,19 +25,22 @@ def send_request(server_url, prime_sum, response_counts, lock, response_time_lis
                 else:
                     response_counts[server] += 1
             
-            total_user = sum(cpu['times']['user'] for cpu in json_data['data']['cpus'])
-            total_sys = sum(cpu['times']['sys'] for cpu in json_data['data']['cpus'])
-            total_idle = sum(cpu['times']['idle'] for cpu in json_data['data']['cpus'])
-            total_irq = sum(cpu['times']['irq'] for cpu in json_data['data']['cpus'])
+            # total_user = sum(cpu['times']['user'] for cpu in json_data['data']['cpus'])
+            # total_sys = sum(cpu['times']['sys'] for cpu in json_data['data']['cpus'])
+            # total_idle = sum(cpu['times']['idle'] for cpu in json_data['data']['cpus'])
+            # total_irq = sum(cpu['times']['irq'] for cpu in json_data['data']['cpus'])
 
-            total_time = ( total_user + total_sys + total_idle + total_irq ) * 0.2
-            total_usage = ((total_user + total_sys) / total_time)
+            # total_time = ( total_user + total_sys + total_idle + total_irq )
+            # print(total_time)
+            # total_usage = ((total_user + total_sys) / total_time)
 
+            # print(total_usage)
 
             response_data_list.append({
-                "counter": json_data['data']['counter'],
+                "cpu": json_data['data']['data']['cpuUsage'],
+                "counter": json_data['data']['data']['counter'],
                 "mem": json_data['data']['mem'],
-                "cpu": total_usage
+                "process_time": json_data['data']['data']['processTime']
                 })
         else:
             print(f"Request failed with status code: {response.status_code}")
@@ -93,7 +96,7 @@ if __name__ == "__main__":
             elif response_time_list[i][1] == 'http://192.168.56.104:8080':
                 vm_name = 0
             # f.write(f"{request_counts[i]} {response_time_list[i][0]} {vm_name} \n")
-            f.write(f"{request_counts[i]} {response_data_list[i]['counter']} {response_data_list[i]['mem']} {response_data_list[i]['cpu']} {response_time_list[i][0]} {vm_name} \n")
+            f.write(f"{request_counts[i]} {response_data_list[i]['counter']} {response_data_list[i]['mem']} {response_data_list[i]['cpu']} {response_data_list[i]['process_time']} {vm_name} \n")
 
     all_end_time = time.time()
     # print counter
