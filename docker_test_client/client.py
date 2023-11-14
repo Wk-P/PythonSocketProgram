@@ -37,6 +37,7 @@ def send_request(server_url, prime_sum, response_counts, lock, response_time_lis
             # print(total_usage)
 
             response_data_list.append({
+                "number": json_data['data']['data']['number'],
                 "cpu": json_data['data']['data']['cpuUsage'],
                 "counter": json_data['data']['data']['counter'],
                 "mem": json_data['data']['mem'],
@@ -71,7 +72,7 @@ if __name__ == "__main__":
     pool = multiprocessing.Pool(processes=num_processes)
     
     # requests
-    num_requests = 500
+    num_requests = 1
     request_counts = [random.randint(1, 10000) for _ in range(num_requests)]
     # response result list
     results = []
@@ -96,7 +97,7 @@ if __name__ == "__main__":
             elif response_time_list[i][1] == 'http://192.168.56.104:8080':
                 vm_name = 0
             # f.write(f"{request_counts[i]} {response_time_list[i][0]} {vm_name} \n")
-            f.write(f"{request_counts[i]} {response_data_list[i]['counter']} {response_data_list[i]['mem']} {response_data_list[i]['cpu']} {response_data_list[i]['process_time']} {vm_name} \n")
+            f.write(f"{response_data_list[i]['number']} {response_data_list[i]['counter']} {response_data_list[i]['mem']} {response_data_list[i]['cpu']} {response_data_list[i]['process_time']} {vm_name} \n")
 
     all_end_time = time.time()
     # print counter
