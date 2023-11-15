@@ -14,16 +14,20 @@ def send_request(server_url, prime_sum, response_counts, lock, response_time_lis
         response = requests.post(server_url, json=data)
         if response.status_code == 200:
             # print("Request was successful. Server response:")
-            json_data = response.json()
-            print(json_data, end='\n-----\n')
-            server = json_data['server']
-
-            # update response_counts with lock
-            with lock:
-                if server not in response_counts:
-                    response_counts[server] = 1
-                else:
-                    response_counts[server] += 1
+            json_data_list = response.json()
+            print(json_data_list, "\n-------\n")
+            for res in json_data_list:
+                server = res['server']
+                if 'number' in res['data']:
+                    # update response_counts with lock
+                    with lock:
+                        if server not in response_counts:
+                            response_counts[server] = 1
+                        else:
+                            response_counts[server] += 1
+            
+            response_data_list.append(json_data_list)
+                
             
             # total_user = sum(cpu['times']['user'] for cpu in json_data['data']['cpus'])
             # total_sys = sum(cpu['times']['sys'] for cpu in json_data['data']['cpus'])
@@ -36,13 +40,8 @@ def send_request(server_url, prime_sum, response_counts, lock, response_time_lis
 
             # print(total_usage)
 
-            response_data_list.append({
-                "number": json_data['data']['data']['number'],
-                "cpu": json_data['data']['data']['cpuUsage'],
-                "counter": json_data['data']['data']['counter'],
-                "mem": json_data['data']['mem'],
-                "process_time": json_data['data']['data']['runtime']
-                })
+            
+                
         else:
             print(f"Request failed with status code: {response.status_code}")
 
@@ -72,7 +71,7 @@ if __name__ == "__main__":
     pool = multiprocessing.Pool(processes=num_processes)
     
     # requests
-    num_requests = 1
+    num_requests = 500
     request_counts = [random.randint(1, 10000) for _ in range(num_requests)]
     # response result list
     results = []
@@ -82,26 +81,45 @@ if __name__ == "__main__":
             results.pop(0).get()  # wait the first response pf requests when request queue is full (max = 4)
         result = pool.apply_async(send_request, (server_url, count, response_counts, lock, response_time_list, response_data_list))
         results.append(result)
-    
+
     # wait all prcesses finishing
     pool.close()
     pool.join()
     
-
     file_path = "training.txt"
 
+    
+    # add all server node address to set
+    nodes = set()
+    for response in response_data_list:
+        for node in response:
+            nodes.add(node['server'])
+
+
     with open(file_path, 'w', encoding='utf-8') as f:
-        for i in range(num_requests):
-            if response_time_list[i][1] == 'http://192.168.56.103:8080':
-                vm_name = 1
-            elif response_time_list[i][1] == 'http://192.168.56.104:8080':
-                vm_name = 0
-            # f.write(f"{request_counts[i]} {response_time_list[i][0]} {vm_name} \n")
-            f.write(f"{response_data_list[i]['number']} {response_data_list[i]['counter']} {response_data_list[i]['mem']} {response_data_list[i]['cpu']} {response_data_list[i]['process_time']} {vm_name} \n")
+        for res in response_data_list:
+            print(res)
+            input = ""
+            # ID number for server node
+            # get information of each server in every response
+            idle_record = ""
+            worker_record = ""
+            for n in res:
+                # For worker node
+                data = n['data']
+                Id_number = list(nodes).index(n['server'])
+                if 'number' in n['data']:
+                    worker_record = f"{data['number']} {data['counter']} {data['mem']} {data['cpuUsage']} {data['runtime']} {Id_number} "
+                else:
+                    idle_record += f"{data['cpuUsage']} {data['mem']} "
+                # For idle node
+            worker_record + idle_record
+
+            f.write(f"{worker_record + idle_record}\n")
 
     all_end_time = time.time()
     # print counter
     print("Response counts:")
     for server, data in response_counts.items():
-            print(f"Server {server} responses => {data}")
+        print(f"Server {server} responses => {data}")
     print(f"Run time : {all_end_time - all_start_time: .3f} seconds")
