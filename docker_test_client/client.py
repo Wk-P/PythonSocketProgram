@@ -15,7 +15,7 @@ def send_request(server_url, prime_sum, response_counts, lock, response_time_lis
         if response.status_code == 200:
             # print("Request was successful. Server response:")
             json_data_list = response.json()
-            print(json_data_list, "\n-------\n")
+            print(json_data_list)
             for res in json_data_list:
                 server = res['server']
                 if 'number' in res['data']:
@@ -27,7 +27,10 @@ def send_request(server_url, prime_sum, response_counts, lock, response_time_lis
                             response_counts[server] += 1
             
             response_data_list.append(json_data_list)
-                
+            
+            for res in json_data_list:
+                if 'number' in res['data']:
+                    print(res)
             
             # total_user = sum(cpu['times']['user'] for cpu in json_data['data']['cpus'])
             # total_sys = sum(cpu['times']['sys'] for cpu in json_data['data']['cpus'])
@@ -55,7 +58,7 @@ def send_request(server_url, prime_sum, response_counts, lock, response_time_lis
 
 if __name__ == "__main__":
     all_start_time = time.time()
-    server_url = "http://192.168.56.102:8080"
+    server_url = "http://192.168.56.107:8080"
     
     # make response_counts dictionary with Manager
     manager = multiprocessing.Manager()
@@ -71,8 +74,8 @@ if __name__ == "__main__":
     pool = multiprocessing.Pool(processes=num_processes)
     
     # requests
-    num_requests = 50000
-    request_counts = [random.randint(1, 10000) for _ in range(num_requests)]
+    num_requests = 1000
+    request_counts = [random.randint(10000, 100000) for _ in range(num_requests)]
     # response result list
     results = []
 
@@ -87,7 +90,6 @@ if __name__ == "__main__":
     pool.join()
     
     file_path = "training.txt"
-
     
     # add all server node address to set
     nodes = set()
@@ -98,7 +100,6 @@ if __name__ == "__main__":
 
     with open(file_path, 'w', encoding='utf-8') as f:
         for res in response_data_list:
-            print(res)
             input = ""
             # ID number for server node
             # get information of each server in every response
