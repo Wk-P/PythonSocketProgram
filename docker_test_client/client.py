@@ -15,7 +15,7 @@ def send_request(server_url, prime_sum, response_counts, lock, response_time_lis
         if response.status_code == 200:
             # print("Request was successful. Server response:")
             json_data_list = response.json()
-            print(json_data_list)
+            print(f"test :{json_data_list}")
             for res in json_data_list:
                 server = res['server']
                 if 'number' in res['data']:
@@ -74,7 +74,7 @@ if __name__ == "__main__":
     pool = multiprocessing.Pool(processes=num_processes)
     
     # requests
-    num_requests = 1000
+    num_requests = 1
     request_counts = [random.randint(10000, 100000) for _ in range(num_requests)]
     # response result list
     results = []
