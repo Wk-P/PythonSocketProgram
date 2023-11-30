@@ -3,7 +3,20 @@ import multiprocessing
 import random
 import json
 import time
+import aiohttp.web as web
+import aiohttp
+import asyncio
 
+
+async def send_request_v2(server_url, number_list):
+    for prime_number in number_list:
+        async with aiohttp.ClientSession() as session:
+            data = {
+                "number": prime_number
+            }
+            async with session.post(url=server_url, json=data) as response:
+                json_data_list = await response.json()
+                print(json_data_list)
 
 def send_request(server_url, prime_sum, response_counts, lock, response_time_list, response_data_list):
     try:
@@ -15,7 +28,9 @@ def send_request(server_url, prime_sum, response_counts, lock, response_time_lis
         if response.status_code == 200:
             # print("Request was successful. Server response:")
             json_data_list = response.json()
-            print(f"test :{json_data_list}")
+
+            print(f"Test: {json_data_list}")
+
             for res in json_data_list:
                 server = res['server']
                 if 'number' in res['data']:
@@ -70,12 +85,12 @@ if __name__ == "__main__":
     lock = manager.Lock()
 
     # process pool
-    num_processes = 10  # processes number
+    num_processes = 20  # processes number
     pool = multiprocessing.Pool(processes=num_processes)
     
     # requests
-    num_requests = 1
-    request_counts = [random.randint(10000, 100000) for _ in range(num_requests)]
+    num_requests = 1000
+    request_counts = [random.randint(10000, 30000) for _ in range(num_requests)]
     # response result list
     results = []
 
