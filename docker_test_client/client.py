@@ -2,64 +2,141 @@ import requests
 import multiprocessing
 import random
 import json
+import time
+import aiohttp.web as web
+import concurrent.futures
 
-def send_request(server_url, prime_sum, response_counts, lock):
+
+def send_request(args):
+    (
+        server_url,
+        prime_sum,
+        response_counts,
+        lock,
+        response_time_list,
+        response_data_list,
+    ) = args
     try:
-        data = {
-            'num': prime_sum
-        }
+        start_time = time.time()
+        data = {"number": prime_sum}
         response = requests.post(server_url, json=data)
         if response.status_code == 200:
             # print("Request was successful. Server response:")
-            json_data = response.json()
-            # print(json_data, end='\n-----\n')
-            port = json_data['server']
+            json_data_list = response.json()
 
-            # update response_counts with lock
-            with lock:
-                if port not in response_counts:
-                    response_counts[port] = 1
-                else:
-                    response_counts[port] += 1
+            print(f"Test: {json_data_list}")
+
+            for res in json_data_list:
+                server = res["server"]
+                if "number" in res["data"]:
+                    # update response_counts with lock
+                    with lock:
+                        if server not in response_counts:
+                            response_counts[server] = 1
+                        else:
+                            response_counts[server] += 1
+            response_data_list.append(json_data_list)
+
         else:
             print(f"Request failed with status code: {response.status_code}")
-    
+
+        end_time = time.time()
+        response_time_list.append((end_time - start_time, server))
     except Exception as e:
         print(f"Request failed with error: {str(e)}")
 
-if __name__ == "__main__":
 
-    server_url = "http://192.168.56.102:8080"
-    
+def generate_request_counts():
+    cycle = [0, 1, 2, 1]
+    while True:
+        for count in cycle:
+            yield count
+
+
+if __name__ == "__main__":
+    all_start_time = time.time()
+    server_url = "http://192.168.56.107:8080"
+
     # make response_counts dictionary with Manager
     manager = multiprocessing.Manager()
     response_counts = manager.dict()
-    
+    response_time_list = manager.list()
+    response_data_list = manager.list()
+
     # create lock
     lock = manager.Lock()
 
-    # process pool
-    num_processes = 4  # processes number
-    pool = multiprocessing.Pool(processes=num_processes)
-    
     # requests
-    num_requests = 3000
-    request_counts = [random.randint(1, 50) for _ in range(num_requests)]
-    
-    # response result list
-    results = []
-    
-    for count in request_counts:
-        if len(results) >= num_processes:
-            results.pop(0).get()  # wait the first response pf requests when request queue is full (max = 4)
-        result = pool.apply_async(send_request, (server_url, count, response_counts, lock))
-        results.append(result)
-    
+    cycle_sum = 4
+    num_requests = 1000 * cycle_sum
+    request_counts = (random.randint(0, 30000) for _ in range(num_requests))
+
+    # Create cycle loop list for generater
+    request_counts_generator = generate_request_counts()
+    futures = []
+
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        while num_requests > 0:  # n delta T
+            request_count = next(request_counts_generator)
+            # Update sending requests sum
+            num_requests -= request_count
+            if num_requests < 0:
+                break
+            print(num_requests)
+            # Send requests
+            for _ in range(request_count):
+                prime_sum = next(request_counts)
+                futures.append(
+                    executor.submit(
+                        send_request,
+                        (
+                            server_url,
+                            prime_sum,
+                            response_counts,
+                            lock,
+                            response_time_list,
+                            response_data_list,
+                        ),
+                    )
+                )
+
+                # delta time
+                time.sleep(0.01)
+
+        for future in concurrent.futures.as_completed(futures):
+            result = future.result()
+
     # wait all prcesses finishing
-    pool.close()
-    pool.join()
-    
+    file_path = "training1.txt"
+
+    # add all server node address to set
+    nodes = set()
+    for response in response_data_list:
+        for node in response:
+            nodes.add(node["server"])
+
+    print(f"response_data_list : {response_data_list}")
+
+    with open(file_path, "w", encoding="utf-8") as f:
+        for res in response_data_list:
+            # get information of each server in every response
+            input = ""
+            idle_record = ""
+            worker_record = ""
+            # for n in res:
+            data = res[0]
+            # For worker node
+            Id_number = list(nodes).index(data["server"])
+            worker_record = f"{data['data']['number']} {data['data']['counter']} {data['data']['runtime']} {Id_number} "
+            idle_record = f"{data['replicas_usage']} "
+            # For idle node
+            record = worker_record + idle_record
+
+            f.write(f"{record}\n")
+
+    all_end_time = time.time()
     # print counter
     print("Response counts:")
-    for server, data in response_counts.items():
-        print(f"Server {server} responses => {data}")
+    for server in response_counts:
+        print(f"Server {server} responses => {response_counts[server]}")
+    print(f"Run time : {all_end_time - all_start_time: .3f} seconds")
