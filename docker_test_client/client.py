@@ -82,7 +82,6 @@ if __name__ == "__main__":
             num_requests -= request_count
             if num_requests < 0:
                 break
-            print(num_requests)
             # Send requests
             for _ in range(request_count):
                 prime_sum = next(request_counts)
@@ -107,36 +106,35 @@ if __name__ == "__main__":
             result = future.result()
 
     # wait all prcesses finishing
-    file_path = "training1.txt"
+    file_path = "training2.txt"
 
     # add all server node address to set
     nodes = set()
     for response in response_data_list:
         for node in response:
             nodes.add(node["server"])
+    try:
+        with open(file_path, "w", encoding="utf-8") as f:
+            for res in response_data_list:
+                if res:
+                    # get information of each server in every response
+                    input = ""
+                    idle_record = ""
+                    worker_record = ""
+                    # for n in res:
+                    data = res[0]
+                    # For worker node
+                    Id_number = list(nodes).index(data["server"])
+                    worker_record = f"{data['data']['number']} {data['data']['counter']} {data['data']['runtime']} {Id_number} "
+                    idle_record = f"{data['replicas_usage']} "
+                    # For idle node
+                    record = worker_record + idle_record
 
-    print(f"response_data_list : {response_data_list}")
-
-    with open(file_path, "w", encoding="utf-8") as f:
-        for res in response_data_list:
-            # get information of each server in every response
-            input = ""
-            idle_record = ""
-            worker_record = ""
-            # for n in res:
-            data = res[0]
-            # For worker node
-            Id_number = list(nodes).index(data["server"])
-            worker_record = f"{data['data']['number']} {data['data']['counter']} {data['data']['runtime']} {Id_number} "
-            idle_record = f"{data['replicas_usage']} "
-            # For idle node
-            record = worker_record + idle_record
-
-            f.write(f"{record}\n")
-
-    all_end_time = time.time()
-    # print counter
-    print("Response counts:")
-    for server in response_counts:
-        print(f"Server {server} responses => {response_counts[server]}")
-    print(f"Run time : {all_end_time - all_start_time: .3f} seconds")
+                    f.write(f"{record}\n")
+    finally:
+        all_end_time = time.time()
+        # print counter
+        print("Response counts:")
+        for server in response_counts:
+            print(f"Server {server} responses => {response_counts[server]}")
+        print(f"Run time : {all_end_time - all_start_time: .3f} seconds")
