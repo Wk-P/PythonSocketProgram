@@ -7,6 +7,8 @@ import aiohttp.web as web
 import concurrent.futures
 
 
+responses_counter = 0
+
 def send_request(args):
     (
         server_url,
@@ -17,6 +19,9 @@ def send_request(args):
         response_data_list,
     ) = args
     try:
+
+        global responses_counter
+
         start_time = time.time()
         data = {"number": prime_sum}
         response = requests.post(server_url, json=data)
@@ -25,6 +30,9 @@ def send_request(args):
             json_data_list = response.json()
 
             print(f"Test: {json_data_list}")
+
+            responses_counter += 1
+            print(responses_counter)
 
             for res in json_data_list:
                 server = res["server"]
@@ -76,37 +84,39 @@ if __name__ == "__main__":
     futures = []
 
     with concurrent.futures.ProcessPoolExecutor() as executor:
-        while num_requests > 0:  # n delta T
-            request_count = next(request_counts_generator)
+        # while num_requests > 0:  # n delta T
+            # request_count = next(request_counts_generator)
             # Update sending requests sum
-            num_requests -= request_count
-            if num_requests < 0:
-                break
-            # Send requests
-            for _ in range(request_count):
-                prime_sum = next(request_counts)
-                futures.append(
-                    executor.submit(
-                        send_request,
-                        (
-                            server_url,
-                            prime_sum,
-                            response_counts,
-                            lock,
-                            response_time_list,
-                            response_data_list,
-                        ),
-                    )
-                )
+            # num_requests -= request_count
 
-                # delta time
-                time.sleep(0.01)
+            # if num_requests < 0:
+            #     break
+        
+        # Send requests
+        for _ in range(num_requests):
+            prime_sum = next(request_counts)
+            futures.append(
+                executor.submit(
+                    send_request,
+                    (
+                        server_url,
+                        prime_sum,
+                        response_counts,
+                        lock,
+                        response_time_list,
+                        response_data_list,
+                    ),
+                )
+            )
+
+            # delta time
+            time.sleep(0.01)
 
         for future in concurrent.futures.as_completed(futures):
             result = future.result()
 
     # wait all prcesses finishing
-    file_path = "training2.txt"
+    file_path = "training3.txt"
 
     # add all server node address to set
     nodes = set()
