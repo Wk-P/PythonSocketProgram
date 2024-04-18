@@ -7,7 +7,6 @@ import aiohttp.web as web
 import concurrent.futures
 
 
-responses_counter = 0
 
 def send_request(args):
     (
@@ -19,9 +18,6 @@ def send_request(args):
         response_data_list,
     ) = args
     try:
-
-        global responses_counter
-
         start_time = time.time()
         data = {"number": prime_sum}
         response = requests.post(server_url, json=data)
@@ -30,9 +26,6 @@ def send_request(args):
             json_data_list = response.json()
 
             print(f"Test: {json_data_list}")
-
-            responses_counter += 1
-            print(responses_counter)
 
             for res in json_data_list:
                 server = res["server"]
@@ -55,75 +48,76 @@ def send_request(args):
 
 
 def generate_request_counts():
-    cycle = [0, 1, 2, 1]
+    cycle = [1]
     while True:
         for count in cycle:
             yield count
 
 
 if __name__ == "__main__":
-    all_start_time = time.time()
-    server_url = "http://192.168.56.107:8080"
-
-    # make response_counts dictionary with Manager
-    manager = multiprocessing.Manager()
-    response_counts = manager.dict()
-    response_time_list = manager.list()
-    response_data_list = manager.list()
-
-    # create lock
-    lock = manager.Lock()
-
-    # requests
-    cycle_sum = 4
-    num_requests = 1000 * cycle_sum
-    request_counts = (random.randint(0, 30000) for _ in range(num_requests))
-
-    # Create cycle loop list for generater
-    request_counts_generator = generate_request_counts()
-    futures = []
-
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        # while num_requests > 0:  # n delta T
-            # request_count = next(request_counts_generator)
-            # Update sending requests sum
-            # num_requests -= request_count
-
-            # if num_requests < 0:
-            #     break
-        
-        # Send requests
-        for _ in range(num_requests):
-            prime_sum = next(request_counts)
-            futures.append(
-                executor.submit(
-                    send_request,
-                    (
-                        server_url,
-                        prime_sum,
-                        response_counts,
-                        lock,
-                        response_time_list,
-                        response_data_list,
-                    ),
-                )
-            )
-
-            # delta time
-            time.sleep(0.01)
-
-        for future in concurrent.futures.as_completed(futures):
-            result = future.result()
-
-    # wait all prcesses finishing
-    file_path = "training3.txt"
-
-    # add all server node address to set
-    nodes = set()
-    for response in response_data_list:
-        for node in response:
-            nodes.add(node["server"])
     try:
+        all_start_time = time.time()
+        server_url = "http://192.168.56.107:8080"
+
+        # make response_counts dictionary with Manager
+        manager = multiprocessing.Manager()
+        response_counts = manager.dict()
+        response_time_list = manager.list()
+        response_data_list = manager.list()
+
+        # create lock
+        lock = manager.Lock()
+
+        # requests
+        # cycle_sum = 4
+        # num_requests = 1000 * cycle_sum
+        num_requests = 3000
+        request_counts = [random.randint(40000, 50000) for _ in range(num_requests)]
+
+        # Create cycle loop list for generater
+        # request_counts_generator = generate_request_counts()
+        futures = []
+
+        with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
+            # while num_requests > 0:  # n delta T
+                # request_count = next(request_counts_generator)
+                # Update sending requests sum
+                # num_requests -= request_count
+
+                # if num_requests < 0:
+                #     break
+            
+            # Send requests
+            for index in range(num_requests):
+                prime_sum = request_counts[index]
+                futures.append(
+                    executor.submit(
+                        send_request,
+                        (
+                            server_url,
+                            prime_sum,
+                            response_counts,
+                            lock,
+                            response_time_list,
+                            response_data_list,
+                        ),
+                    )
+                )
+
+                # delta time
+                # time.sleep(0.01)
+
+            for future in concurrent.futures.as_completed(futures):
+                result = future.result()
+
+        # wait all prcesses finishing
+        file_path = "training5-1.txt"
+
+        # add all server node address to set
+        nodes = set()
+        for response in response_data_list:
+            for node in response:
+                nodes.add(node["server"])
         with open(file_path, "w", encoding="utf-8") as f:
             for res in response_data_list:
                 if res:
@@ -141,6 +135,8 @@ if __name__ == "__main__":
                     record = worker_record + idle_record
 
                     f.write(f"{record}\n")
+    except Exception as e:
+        print(e)
     finally:
         all_end_time = time.time()
         # print counter
