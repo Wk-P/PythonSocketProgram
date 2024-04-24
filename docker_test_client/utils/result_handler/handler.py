@@ -41,6 +41,5 @@ def handler(path):
         print(response_time, response_sever_code, cpu_vec, mem_vec, hdd_vec)
         
 
-
 if __name__ == "__main__":
     handler(parent_dir + file_name)
