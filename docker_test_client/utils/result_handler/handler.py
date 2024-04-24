@@ -21,27 +21,30 @@ def handler(path):
             results.append(line)
 
     hostname_set = set()
+    type_set = set()
     for result in results:
         for key in list(result['replicas_resources']['cpu'].keys()):
             hostname_set.add(key)
+        type_set.add(result['type'])
 
         result['replicas_resources']['cpu'] = {k: result['replicas_resources']['cpu'][k] for k in sorted(result['replicas_resources']['cpu'])}
         result['replicas_resources']['mem'] = {k: result['replicas_resources']['mem'][k] for k in sorted(result['replicas_resources']['mem'])}
         result['replicas_resources']['hdd'] = {k: result['replicas_resources']['hdd'][k] for k in sorted(result['replicas_resources']['hdd'])}
-    host_sum = len(hostname_set)
-    hostname_one_hot = generate_one_hot_list(host_sum, hostname_set)
-
+    hostname_one_hot = generate_one_hot_list(len(hostname_set), hostname_set)
+    type_one_hot = generate_one_hot_list(len(type_set), type_set)
 
     w_lines = []
 
     for result in results:
         response_time = result['data']['runtime']
         hostname = result['hostname']
+        req_type = result['type']
         response_sever_code = hostname_one_hot[hostname]
-        cpu_vec = list(result['replicas_resources']['cpu'].values())
-        mem_vec = list(result['replicas_resources']['mem'].values())
-        hdd_vec = list(result['replicas_resources']['hdd'].values())
-        w_lines.append(str(response_time, response_sever_code, cpu_vec, mem_vec, hdd_vec))
+        type_code = type_one_hot[req_type]
+        cpu_vec = " ".join(str(x) for x in list(result['replicas_resources']['cpu'].values()))
+        mem_vec = " ".join(str(x) for x in list(result['replicas_resources']['mem'].values()))
+        hdd_vec = " ".join(str(x) for x in list(result['replicas_resources']['hdd'].values()))
+        w_lines.append(f"{response_time} | {response_sever_code} | {cpu_vec} | {mem_vec} | {hdd_vec} | {type_code}\n")
         
     with open(parent_dir + "trainingDataSet_v2.txt", 'w', encoding='utf-8') as wf:
         for wl in w_lines:
