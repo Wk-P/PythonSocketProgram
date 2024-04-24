@@ -58,7 +58,7 @@ if __name__ == "__main__":
     response_time_list = manager.list()
     response_data_list = manager.list()
 
-    sum_requests = 25000
+    sum_requests = 2500
     loop = asyncio.new_event_loop()
     results = loop.run_until_complete(fetch_all_requests(url=server_url, sum_requests=sum_requests))
     # print(results)
