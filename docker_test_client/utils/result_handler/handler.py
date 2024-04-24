@@ -1,6 +1,6 @@
 import jsonlines
 
-file_name = 'results_v1_3.jsonl'
+file_name = 'results_v1_4.jsonl'
 parent_dir = r"C:\pythonLocalFile\github\PythonSocketProgram\docker_test_client\utils\result_handler\\"
 
 
@@ -31,6 +31,9 @@ def handler(path):
     host_sum = len(hostname_set)
     hostname_one_hot = generate_one_hot_list(host_sum, hostname_set)
 
+
+    w_lines = []
+
     for result in results:
         response_time = result['data']['runtime']
         hostname = result['hostname']
@@ -38,8 +41,11 @@ def handler(path):
         cpu_vec = list(result['replicas_resources']['cpu'].values())
         mem_vec = list(result['replicas_resources']['mem'].values())
         hdd_vec = list(result['replicas_resources']['hdd'].values())
-        print(response_time, response_sever_code, cpu_vec, mem_vec, hdd_vec)
+        w_lines.append(str(response_time, response_sever_code, cpu_vec, mem_vec, hdd_vec))
         
+    with open(parent_dir + "trainingDataSet_v2.txt", 'w', encoding='utf-8') as wf:
+        for wl in w_lines:
+            wf.write(wl)
 
 if __name__ == "__main__":
     handler(parent_dir + file_name)
