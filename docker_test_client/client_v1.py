@@ -7,7 +7,6 @@ import jsonlines
 
 # 初步实现发送不同请求类别
 
-
 time_f = 0
 
 # send on request
@@ -18,12 +17,17 @@ async def request_post(url, session:aiohttp.ClientSession, headers, data):
     time_f = start_time
     # print(f"HEADERS => {headers}, DATA => {data}")
     async with session.post(url, headers=headers, data=data) as response:
-        data = await response.json()
-        # print(f"HEADERS => {headers}, DATA => {data}")
-        data['data']['runtime'] = time.time() - start_time
-        data['type'] = headers['task_type']
-        print(data)
-        return data
+        try:
+            data = await response.json()
+            data['start_timestamp'] = start_time
+            # print(f"HEADERS => {headers}, DATA => {data}")
+            data['data']['runtime'] = time.time() - start_time
+            data['type'] = headers['task_type']
+            data['recv_timestamp'] = time.time()
+            print(data)
+            return data
+        except TypeError as e:
+            return {"message": e}
 
 
 # send all requests
@@ -38,7 +42,7 @@ async def fetch_all_requests(url, sum_requests):
             if task_type == 'C':
                 data = { "number": random.randint(30000, 70000) }
             elif task_type == 'M':
-                data = { "size": int(random.randint(5, 10) * pow(2, 10)) }  # number of bytes 
+                data = { "size": int(random.randint(20, 40) * pow(2, 10)) }  # number of bytes 
             elif task_type == 'H':
                 data = { "foo": 0 }
             tasks.append(asyncio.create_task(request_post(url, session=session, headers=headers, data=data)))
@@ -63,6 +67,9 @@ if __name__ == "__main__":
     print(f"        Program runing time => {time.time() - start}")
     print(f"Sending cumlative send time => {time_f - start} s")
 
-    with jsonlines.open("./results_v1.jsonl", 'w') as f:
+    with jsonlines.open("./results_v1_2.jsonl", 'w') as f:
         for r in results:
-            f.write(r)
+            try:
+                f.write(r)
+            except TypeError as e:
+                f.write({"message": str(e)})
