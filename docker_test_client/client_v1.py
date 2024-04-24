@@ -21,7 +21,7 @@ async def request_post(url, session:aiohttp.ClientSession, headers, data):
             data = await response.json()
             data['start_timestamp'] = start_time
             # print(f"HEADERS => {headers}, DATA => {data}")
-            data['data']['runtime'] = time.time() - start_time
+            data['data']['runtime'] = time.time() - data['timestamp']
             data['type'] = headers['task_type']
             data['recv_timestamp'] = time.time()
             print(data)
