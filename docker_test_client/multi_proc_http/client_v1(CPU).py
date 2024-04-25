@@ -11,14 +11,18 @@ def send_request(args):
 
     start_time = time.time()
     print(f"Send timestamp => {start_time}")
-
-    response = requests.post(url=url, headers=headers, data=data)
-    response_data = response.json()
-    response_data['recv_timestamp'] = time.time()
-    response_data['send_timestamp'] = start_time
-    response_data['type'] = headers.get('task_type')
-    response_data["runtime"] = response_data["recv_timestamp"] - start_time
-    return response_data
+    try:
+        response = requests.post(url=url, headers=headers, data=data)
+        response_data = response.json()
+        response_data['recv_timestamp'] = time.time()
+        response_data['send_timestamp'] = start_time
+        response_data['type'] = headers.get('task_type')
+        response_data["runtime"] = response_data["recv_timestamp"] - start_time
+    except requests.exceptions.ConnectionError as e:
+        response_data['error'] = 1
+        pass
+    finally:
+        return response_data
 
 def generate_request():
     st = time.time()
@@ -33,7 +37,7 @@ if __name__ == "__main__":
 
     program_start_time = time.time()
 
-    sum_requests = 2500   
+    sum_requests = 5000
 
     request_list = list()
     for _ in range(sum_requests):
@@ -67,4 +71,4 @@ if __name__ == "__main__":
     print(f"loss package: {err_cnt}")
     print(f"succ package: {suc_cnt}")
     print(f"        loss: {round(err_cnt / suc_cnt, 4) * 100}%")
-    print(f"prog runtime: {time.time() - program_start_time}s")
+    print(f"prog runtime: {round(time.time() - program_start_time, 2)} s")
