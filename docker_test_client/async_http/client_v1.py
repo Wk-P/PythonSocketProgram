@@ -6,6 +6,7 @@ import asyncio
 import jsonlines
 
 # 初步实现发送不同请求类别
+# 使用异步发送，尽可能做到并发， 2500个请求大约在2秒左右发送完毕
 
 time_f = 0
 
