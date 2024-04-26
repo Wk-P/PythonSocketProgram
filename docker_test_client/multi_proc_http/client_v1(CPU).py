@@ -14,10 +14,11 @@ def send_request(args):
     try:
         response = requests.post(url=url, headers=headers, data=data)
         response_data = response.json()
-        response_data['recv_timestamp'] = time.time()
-        response_data['send_timestamp'] = start_time
-        response_data['type'] = headers.get('task_type')
+        response_data["recv_timestamp"] = time.time()
+        response_data["send_timestamp"] = start_time
+        response_data["type"] = headers.get('task_type')
         response_data["runtime"] = response_data["recv_timestamp"] - start_time
+        response_data["req_number"] = data["number"]
     except requests.exceptions.ConnectionError as e:
         response_data['error'] = 1
         pass
