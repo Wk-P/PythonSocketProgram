@@ -30,7 +30,7 @@ def generate_request():
     url="http://192.168.56.107:8080"
     task_type = "C"
     headers = {"task_type": task_type}
-    data = {"number": random.randint(30000, 70000)}
+    data = {"number": random.randint(1000, 70000)}
 
     return (url, headers, data)
 
@@ -38,7 +38,7 @@ if __name__ == "__main__":
 
     program_start_time = time.time()
 
-    sum_requests = 5000
+    sum_requests = 50000
 
     request_list = list()
     for _ in range(sum_requests):
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     err_cnt = 0
     suc_cnt = 0
 
-    output_file_path = './response_v1(CPU).jsonl'
+    output_file_path = './response_v2(CPU).jsonl'
     with jsonlines.open(output_file_path, 'w') as f:
         for res in responses_list:
             if "error" in res:
