@@ -1,75 +1,69 @@
-from concurrent.futures import ProcessPoolExecutor
-import random
 import requests
+import concurrent.futures
 import time
-import jsonlines
+import typing
+import pandas as pd
+import random
 
-def send_request(args):
-    url = args[0]
-    headers:dict = args[1]
-    data:dict = args[2]
 
-    start_time = time.time()
-    print(f"Send timestamp => {start_time}")
+def send(n):
     try:
-        response = requests.post(url=url, headers=headers, data=data)
-        response_data = response.json()
-        response_data["recv_timestamp"] = time.time()
-        response_data["send_timestamp"] = start_time
-        response_data["type"] = headers.get('task_type')
-        response_data["runtime"] = response_data["recv_timestamp"] - start_time
-        response_data["req_number"] = data["number"]
-    except requests.exceptions.ConnectionError as e:
-        response_data['error'] = 1
-        pass
-    finally:
-        return response_data
+        host = "192.168.56.107"
+        port = 8081
 
-def generate_request():
-    st = time.time()
-    url="http://192.168.56.107:8080"
-    task_type = "C"
-    headers = {"task_type": task_type}
-    data = {"number": random.randint(1000, 70000)}
+        headers = {"task_type": "C"}
+        data = {"number": n}
 
-    return (url, headers, data)
+        start = time.time()
+        response: dict = requests.post(
+            url=f"http://{host}:{port}", headers=headers, data=data
+        ).json()
+
+        res = {
+            "ip": response.get("ip"),
+            "number": n,
+            "run-time": time.time() - start,
+        }
+
+        usages = response.get("usages")
+        if response.get("success") and usages is not None:
+            res.update(usages)
+            return res
+        else:
+            return res
+    except Exception as e:
+        print(e)
+
+
+def process(requests_sum):
+    results = dict()
+    print("Request proces start")
+    with concurrent.futures.ProcessPoolExecutor() as e:
+        futures: typing.List[concurrent.futures.Future] = []
+        while requests_sum > 0:
+            requests_n = random.randint(1, max(int(requests_sum / 10), 2))
+            for _ in range(requests_n):
+                futures.append(e.submit(send, random.randint(0, 5000000)))
+            requests_sum -= requests_n
+            time.sleep(random.randint(4, 10))
+
+        for future in concurrent.futures.as_completed(futures):
+            result: dict = future.result()
+
+            for key in result.keys():
+                if key not in results.keys():
+                    results[key] = list()
+                results[key].append(result[key])
+
+    return results
+
 
 if __name__ == "__main__":
+    requests_sum = 100
+    results = process(requests_sum)
 
-    program_start_time = time.time()
+    df = pd.DataFrame(results)
 
-    sum_requests = 50000
-
-    request_list = list()
-    for _ in range(sum_requests):
-        request_list.append(generate_request())
-
-    responses_list = list()
-
-    with ProcessPoolExecutor(max_workers=50) as executor:
-        print("- Requests Start -")
-        print("- Waiting Responses -")
-        results = executor.map(send_request, request_list)
-
-        for result in results:
-            responses_list.append(result)
-
-    err_cnt = 0
-    suc_cnt = 0
-
-    output_file_path = './response_v2(CPU).jsonl'
-    with jsonlines.open(output_file_path, 'w') as f:
-        for res in responses_list:
-            if "error" in res:
-                err_cnt += 1
-            else:
-                suc_cnt += 1
-                f.write(res)
-                for k in res:
-                    print(f"[{k}] => {res[k]}")
-            print("----\n")
-
-    print(f"loss package: {err_cnt}")
-    print(f"succ package: {suc_cnt}")
-    print(f"        loss: {round(err_cnt / suc_cnt, 4) * 100}%")
-    print(f"prog runtime: {round(time.time() - program_start_time, 2)} s")
+    excel_writer = pd.ExcelWriter("output.xlsx", engine="openpyxl")
+    df.to_excel(excel_writer, index=False, sheet_name="Sheet1")
+    excel_writer.close()
