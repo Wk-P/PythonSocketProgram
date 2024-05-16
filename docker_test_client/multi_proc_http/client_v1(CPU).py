@@ -20,9 +20,9 @@ def send(n):
         ).json()
 
         res = {
-            "ip": response.get("ip"),
-            "number": n,
             "run-time": time.time() - start,
+            "number": n,
+            "ip": response.get("ip"),
         }
 
         usages = response.get("usages")
@@ -41,11 +41,11 @@ def process(requests_sum):
     with concurrent.futures.ProcessPoolExecutor() as e:
         futures: typing.List[concurrent.futures.Future] = []
         while requests_sum > 0:
-            requests_n = random.randint(1, max(int(requests_sum / 10), 2))
+            requests_n = random.randint(1, 3)
             for _ in range(requests_n):
-                futures.append(e.submit(send, random.randint(0, 5000000)))
+                futures.append(e.submit(send, random.randint(100000, 500000)))
             requests_sum -= requests_n
-            time.sleep(random.randint(4, 10))
+            time.sleep(random.randint(1, 3))
 
         for future in concurrent.futures.as_completed(futures):
             result: dict = future.result()
@@ -59,7 +59,7 @@ def process(requests_sum):
 
 
 if __name__ == "__main__":
-    requests_sum = 100
+    requests_sum = 2000
     results = process(requests_sum)
 
     df = pd.DataFrame(results)
